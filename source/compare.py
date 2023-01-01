@@ -6,6 +6,8 @@ import sys
 import ast
 import time
 
+COUNT_OF_PROCESSES = 4
+
 
 # Parse arguments from command line in format of:
 # python3 compare.py /page/../input.txt /page/.../scores.txt
@@ -51,6 +53,13 @@ def get_code(file_name):
 
 # Delete tokens, which have no children
 def delete_tokens_without_children(ast_tree):
+    for node in ast.walk(ast_tree):
+        if not list(ast.iter_child_nodes(node)):
+            node.parent = None
+    return ast_tree
+
+
+def delete_tokens_without_operators(ast_tree):
     for node in ast.walk(ast_tree):
         if not list(ast.iter_child_nodes(node)):
             node.parent = None
@@ -127,26 +136,16 @@ def plagiat_ast(code1, code2):
     ast1 = delete_tokens_without_children(ast1)
     ast2 = delete_tokens_without_children(ast2)
 
+    # Delete tokens, which have no operators
+    # print('Deleting tokens, which have no operators...')
+    ast1 = delete_tokens_without_operators(ast1)
+    ast2 = delete_tokens_without_operators(ast2)
+
     # Calculate distance between ast-trees
     distance = ast_distance(ast1, ast2)
 
     return distance
 
-
-# Compare files and write scores to file
-def start_compare(files, scores_file):
-    # Clear scores file
-    open(scores_file, 'w').close()
-    # Get codes from files
-    codes_tuple = read_files(files)
-
-    for i in range(len(codes_tuple)):
-        code1, code2 = codes_tuple[i]
-        # Check for uniqueness with ast-tree and distance Zhang-Shasha
-        distance = plagiat_ast(code1, code2)
-        # Write scores to file
-        with open(scores_file, 'a') as f:
-            f.write(str(round(distance, 2)) + '\n')
 
 def read_files(files):
     codes_tuple = []
@@ -156,20 +155,6 @@ def read_files(files):
         codes_tuple.append((code1, code2))
     return codes_tuple
 
-def compare(argv):
-    # Parse arguments from command line in format of:
-    # python3 compare.py /page/../input.txt /page/.../scores.txt
-    input_file, scores_file = parse_args(argv)
-
-    # Get a list of file pairs to check for uniqueness
-    files = get_files_for_comparison(input_file)
-
-    # Compare files and write scores to file
-    # with the division into streams
-    start = time.time()
-    start_parallel_compare(files, scores_file, 4)
-    end = time.time()
-    print('Time: ', end - start)
 
 def start_parallel_compare(files, scores_file, count):
     # Clear scores file
@@ -183,8 +168,25 @@ def start_parallel_compare(files, scores_file, count):
         for i in distance:
             f.write(str(round(i, 2)) + '\n')
 
-def __main__(argv):\
-    compare(argv)
+
+def compare(argv):
+    # Parse arguments from command line in format of:
+    # python3 compare.py /page/../input.txt /page/.../scores.txt
+    input_file, scores_file = parse_args(argv)
+
+    # Get a list of file pairs to check for uniqueness
+    files = get_files_for_comparison(input_file)
+
+    # Compare files and write scores to file
+    # with the division into streams
+    start = time.time()
+    start_parallel_compare(files, scores_file, COUNT_OF_PROCESSES)
+    end = time.time()
+    print('Time: ', end - start)
+
+
+def __main__(argv): \
+        compare(argv)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,8 @@ import os
 import argparse as ap
 import random
 
+COUNT_OF_EXAMPLES = 20
+GENERATE_TEST_INPUT = True
 
 def parse_args(argv):
     parser = ap.ArgumentParser()
@@ -58,9 +60,10 @@ def generate_input(argv):
     # Add tuples original-plagiat to list of files
     add_files_to_list(files, original, plagiat)
     # Add tuples original-original to list of files
-    add_files_to_list_original(files, original)
+    if (GENERATE_TEST_INPUT):
+        add_files_to_list_original(files, original)
 
-    write_list_of_files_to_file(files, output, 20)
+    write_list_of_files_to_file(files, output, COUNT_OF_EXAMPLES)
 
     # Shuffle lines in output file
     shuffle_lines(output)
