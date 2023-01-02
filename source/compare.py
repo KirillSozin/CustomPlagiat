@@ -62,7 +62,8 @@ def delete_tokens_without_children(ast_tree):
 def delete_tokens_without_operators(ast_tree):
     for node in ast.walk(ast_tree):
         if not list(ast.iter_child_nodes(node)):
-            node.parent = None
+            if not hasattr(node, 'op'):
+                node.parent = None
     return ast_tree
 
 

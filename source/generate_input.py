@@ -3,7 +3,7 @@ import os
 import argparse as ap
 import random
 
-COUNT_OF_EXAMPLES = 20
+COUNT_OF_EXAMPLES = 5
 GENERATE_TEST_INPUT = True
 
 def parse_args(argv):
